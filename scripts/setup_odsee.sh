@@ -3,10 +3,10 @@
 # Trivadis AG, Infrastructure Managed Services
 # Saegereistrasse 29, 8152 Glattbrugg, Switzerland
 # ----------------------------------------------------------------------
-# Name.......: setup_oudbase.sh 
+# Name.......: setup_odsee.sh 
 # Author.....: Stefan Oehrli (oes) stefan.oehrli@trivadis.com
 # Editor.....: Stefan Oehrli
-# Date.......: 2017.12.04
+# Date.......: 2017.12.19
 # Revision...: 
 # Purpose....: Setup script for oracle environment to build docker OUD image 
 # Notes......: OUD Base scripts are downloaded from github
@@ -30,13 +30,12 @@ echo "--- Upgrade OS and install additional Packages ---------------------------
 yum upgrade -y
 
 # install basic packages 
-yum install -y unzip zip gzip tar hostname which procps-ng
+yum install -y unzip zip gzip tar hostname which procps-ng libstdc++.i686 glibc.i686
 
 # remove unwanted locales, the did come in with yum upgrade....
 /usr/bin/localedef --list-archive | grep -v -i ^en | xargs /usr/bin/localedef --verbose --delete-from-archive
 mv /usr/lib/locale/locale-archive /usr/lib/locale/locale-archive.tmpl
 /usr/sbin/build-locale-archive --verbose
-
 
 echo "--- Setup Oracle OFA environment -----------------------------------------------"
 echo " ORACLE_ROOT=${ORACLE_ROOT}"
@@ -101,30 +100,6 @@ echo 'alias oud=". $(find ${OUD_BASE} -name oudenv.sh)"'  >>"${PROFILE}"
 echo ''                                                   >>"${PROFILE}"
 echo '# source oud environment'                           >>"${PROFILE}"
 echo '. $(find ${OUD_BASE} -name oudenv.sh)'              >>"${PROFILE}"
-
-echo "--- Create response and inventory loc files"
-# set the response_file and inventory loc file
-export RESPONSE_FILE="${ORACLE_BASE}/local/etc/install.rsp"
-export INS_LOC_FILE="${ORACLE_BASE}/local/etc/oraInst.loc"
-
-# check the response file
-if [ ! -f "${RESPONSE_FILE}" ]; then
-    echo "WARN can not find respone file (${RESPONSE_FILE})"
-    echo "WARN create a new file"
-    echo "[ENGINE]" > ${RESPONSE_FILE}
-    echo "Response File Version=1.0.0.0.0" >> ${RESPONSE_FILE}
-    echo "[GENERIC]" >> ${RESPONSE_FILE}
-    echo "DECLINE_SECURITY_UPDATES=true" >> ${RESPONSE_FILE}
-    echo "SECURITY_UPDATES_VIA_MYORACLESUPPORT=false" >> ${RESPONSE_FILE}
-fi
-
-# check the install loc file
-if [ ! -f "${INS_LOC_FILE}" ]; then
-    echo "WARN can not find installation loc file (${INS_LOC_FILE})"
-    echo "WARN create a new file"
-    echo "inventory_loc=${ORACLE_BASE}/oraInventory" > ${INS_LOC_FILE}
-    echo "inst_group=oinstall" >> ${INS_LOC_FILE}
-fi
 
 echo "--- Adjust permissions and remove temporary files ------------------------------"
 # make sure that oracle and root has a OUD_BASE

@@ -20,7 +20,7 @@
 
 # Pull base image
 # ----------------------------------------------------------------------
-FROM oehrlis/oudbase
+FROM oraclelinux:7-slim
 
 # Maintainer
 # ----------------------------------------------------------------------
@@ -50,9 +50,9 @@ COPY scripts ${DOCKER_SCRIPTS}
 #COPY software ${DOWNLOAD}
 
 # install ODSEE requirements
-RUN yum install -y libstdc++.i686 glibc.i686 \
- && yum clean all \
- && rm -rf /var/cache/yum
+# ODSEE environment setup via shell script to reduce layers and 
+# optimize final disk usage
+RUN ${DOCKER_SCRIPTS}/setup_odsee.sh
 
 # Switch to user oracle, oracle software as to be installed with regular user
 USER oracle
