@@ -1,0 +1,77 @@
+# ----------------------------------------------------------------------
+# Trivadis AG, Infrastructure Managed Services
+# Saegereistrasse 29, 8152 Glattbrugg, Switzerland
+# ----------------------------------------------------------------------
+# Name.......: Dockerfile 
+# Author.....: Stefan Oehrli (oes) stefan.oehrli@trivadis.com
+# Editor.....: 
+# Date.......: 
+# Revision...: 
+# Purpose....: Dockerfile to build OUD image
+# Notes......: --
+# Reference..: --
+# License....: CDDL 1.0 + GPL 2.0
+# ----------------------------------------------------------------------
+# Modified...:
+# see git revision history for more information on changes/updates
+# TODO.......:
+# --
+# ----------------------------------------------------------------------
+
+# Pull base image
+# ----------------------------------------------------------------------
+FROM oehrlis/oudbase
+
+# Maintainer
+# ----------------------------------------------------------------------
+LABEL maintainer="stefan.oehrli@trivadis.com"
+
+# Environment variables required for this build (do NOT change)
+# -------------------------------------------------------------
+ENV DOWNLOAD="/tmp/download" \
+    DOCKER_SCRIPTS="/opt/docker/bin" \
+    START_SCRIPT="start_ODSEE_Instance.sh" \
+    CHECK_SCRIPT="check_ODSEE_Instance.sh" \
+    ORACLE_HOME_NAME="dsee7" \
+    ORACLE_ROOT=${ORACLE_ROOT:-/u00} \
+    ORACLE_DATA=${ORACLE_DATA:-/u01} \
+    LDAP_PORT=${LDAP_PORT:-1389} \
+    LDAPS_PORT=${LDAPS_PORT:-1636}
+
+# Use second ENV so that variable get substituted
+ENV ORACLE_BASE=${ORACLE_BASE:-$ORACLE_ROOT/app/oracle} \
+    ODSEE_INSTANCE_BASE=${ODSEE_INSTANCE_BASE:-$ORACLE_DATA/instances}
+
+# same same but third ENV so that variable get substituted
+ENV ENV PATH=${PATH}:"${ORACLE_BASE}/product/${ORACLE_HOME_NAME}/bin:${ORACLE_BASE}/product/${ORACLE_HOME_NAME}/dsrk/bin"
+
+# copy all setup scripts to DOCKER_BIN
+COPY scripts ${DOCKER_SCRIPTS}
+#COPY software ${DOWNLOAD}
+
+# install ODSEE requirements
+RUN yum install -y libstdc++.i686 glibc.i686 \
+ && yum clean all \
+ && rm -rf /var/cache/yum
+
+# Switch to user oracle, oracle software as to be installed with regular user
+USER oracle
+
+ADD software ${ORACLE_BASE}/product/
+
+# OUD admin and ldap ports as well the OUDSM console
+EXPOSE ${LDAP_PORT} ${LDAPS_PORT}
+
+# run container health check
+HEALTHCHECK --interval=1m --start-period=5m \
+   CMD "${DOCKER_SCRIPTS}/${CHECK_SCRIPT}" >/dev/null || exit 1
+   
+# Oracle data volume for OUD instance and configuration files
+VOLUME ["${ORACLE_DATA}"]
+
+# set workding directory
+WORKDIR "${ORACLE_BASE}"
+
+# Define default command to start OUD instance
+CMD exec "${DOCKER_SCRIPTS}/${START_SCRIPT}"
+# --- EOF --------------------------------------------------------------
