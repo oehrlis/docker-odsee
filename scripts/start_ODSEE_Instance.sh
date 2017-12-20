@@ -25,7 +25,7 @@ export ODSEE_INSTANCE=${ODSEE_INSTANCE:-dsDocker}     # Default name for ODSEE i
 export CREATE_INSTANCE=${CREATE_INSTANCE:-'TRUE'}   # Flag to create instance
 
 # ODSEE instance home directory
-export ODSEE_INSTANCE_HOME=${ODSEE_INSTANCE_BASE}/${ODSEE_INSTANCE}
+export ODSEE_INSTANCE_HOME=${INSTANCE_BASE}/${ODSEE_INSTANCE}
 export ODSEE_HOME=${ORACLE_BASE}/product/${ORACLE_HOME_NAME}
 # - End of Customization ----------------------------------------------------
 

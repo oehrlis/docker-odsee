@@ -87,8 +87,8 @@ echo "$s" > ${ORACLE_DATA}/etc/${ODSEE_INSTANCE}_pwd.txt
 
 echo "--- Create ODSE instance --------------------------------------------------------"
 echo "  ODSEE_INSTANCE      = ${ODSEE_INSTANCE}"
-echo "  ODSEE_INSTANCE_BASE = ${ODSEE_INSTANCE_BASE}"
-echo "  ODSEE_INSTANCE_HOME = ${ODSEE_INSTANCE_BASE}/${ODSEE_INSTANCE}"
+echo "  ODSEE_INSTANCE_BASE = ${INSTANCE_BASE}"
+echo "  ODSEE_INSTANCE_HOME = ${INSTANCE_BASE}/${ODSEE_INSTANCE}"
 echo "  LDAP_PORT           = ${LDAP_PORT}"
 echo "  LDAPS_PORT          = ${LDAPS_PORT}"
 echo "  REP_PORT            = ${REP_PORT}"
@@ -102,7 +102,8 @@ ${ODSEE_HOME}/bin/dsadm create -p ${LDAP_PORT} -P ${LDAPS_PORT} -w ${ORACLE_DATA
 if [ $? -eq 0 ]; then
     echo "--- Successfully created ODSEE instance (${ODSEE_INSTANCE}) ------------------------"
     # Execute custom provided setup scripts
-    ${DOCKER_SCRIPTS}/config_ODSEE_Instance.sh ${OUD_INSTANCE_INIT}/setup
+    ${ODSEE_HOME}/bin/dsadm start ${ODSEE_INSTANCE_HOME}
+    ${DOCKER_SCRIPTS}/config_ODSEE_Instance.sh ${ODSEE_INSTANCE_INIT}/setup
 else
     echo "--- ERROR creating ODSEE instance (${ODSEE_INSTANCE}) ------------------------------"
     exit 1

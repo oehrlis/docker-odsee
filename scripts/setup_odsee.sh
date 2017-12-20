@@ -30,7 +30,7 @@ echo "--- Upgrade OS and install additional Packages ---------------------------
 yum upgrade -y
 
 # install basic packages 
-yum install -y unzip zip gzip tar hostname which procps-ng libstdc++.i686 glibc.i686
+yum install -y unzip zip gzip tar hostname which procps-ng libstdc++.i686 glibc.i686 zlib.i686
 
 # remove unwanted locales, the did come in with yum upgrade....
 /usr/bin/localedef --list-archive | grep -v -i ^en | xargs /usr/bin/localedef --verbose --delete-from-archive

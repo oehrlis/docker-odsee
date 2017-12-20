@@ -40,14 +40,13 @@ ENV DOWNLOAD="/tmp/download" \
 
 # Use second ENV so that variable get substituted
 ENV ORACLE_BASE=${ORACLE_BASE:-$ORACLE_ROOT/app/oracle} \
-    ODSEE_INSTANCE_BASE=${ODSEE_INSTANCE_BASE:-$ORACLE_DATA/instances}
+    INSTANCE_BASE=${INSTANCE_BASE:-$ORACLE_DATA/instances}
 
 # same same but third ENV so that variable get substituted
 ENV PATH=${PATH}:"${ORACLE_BASE}/product/${ORACLE_HOME_NAME}/bin:${ORACLE_BASE}/product/${ORACLE_HOME_NAME}/dsrk/bin:${DOCKER_SCRIPTS}"
 
 # copy all setup scripts to DOCKER_BIN
 COPY scripts ${DOCKER_SCRIPTS}
-#COPY software ${DOWNLOAD}
 
 # install ODSEE requirements
 # ODSEE environment setup via shell script to reduce layers and 
@@ -57,7 +56,7 @@ RUN ${DOCKER_SCRIPTS}/setup_odsee.sh
 # Switch to user oracle, oracle software as to be installed with regular user
 USER oracle
 
-ADD software ${ORACLE_BASE}/product/
+COPY software ${ORACLE_BASE}/product/
 
 # OUD admin and ldap ports as well the OUDSM console
 EXPOSE ${LDAP_PORT} ${LDAPS_PORT}
