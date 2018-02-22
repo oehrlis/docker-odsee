@@ -25,7 +25,7 @@ export ODSEE_INSTANCE=${ODSEE_INSTANCE:-dsDocker}     # Default name for ODSEE i
 export CREATE_INSTANCE=${CREATE_INSTANCE:-'TRUE'}   # Flag to create instance
 
 # ODSEE instance home directory
-export ODSEE_INSTANCE_HOME=${INSTANCE_BASE}/${ODSEE_INSTANCE}
+export ODSEE_INSTANCE_HOME=${OUD_INSTANCE_BASE}/${ODSEE_INSTANCE}
 export ODSEE_HOME=${ORACLE_BASE}/product/${ORACLE_HOME_NAME}
 # - End of Customization ----------------------------------------------------
 
@@ -36,7 +36,7 @@ function int_odsee() {
     echo "---------------------------------------------------------------"
     echo "SIGINT received, shutting down ODSEE instance!"
     echo "---------------------------------------------------------------"
-    ${ODSEE_HOME}/bin/dsadm stop ${ODSEE_INSTANCE_HOME}
+    ${ODSEE_HOME}/bin/dsadm stop ${ODSEE_INSTANCE_HOME} >/dev/null 2>&1
 }
 
 # ---------------------------------------------------------------------------
@@ -46,7 +46,7 @@ function term_odsee() {
     echo "---------------------------------------------------------------"
     echo "SIGTERM received, shutting down ODSEE instance!"
     echo "---------------------------------------------------------------"
-    ${ODSEE_HOME}/bin/dsadm stop ${ODSEE_INSTANCE_HOME}
+    ${ODSEE_HOME}/bin/dsadm stop ${ODSEE_INSTANCE_HOME} >/dev/null 2>&1
 }
 
 # ---------------------------------------------------------------------------
@@ -92,7 +92,7 @@ elif [ ${CREATE_INSTANCE} -eq 1 ]; then
         echo "---------------------------------------------------------------"
         echo "   Start ODSEE instance (${ODSEE_INSTANCE}):"
         echo "---------------------------------------------------------------"
-        ${ODSEE_HOME}/bin/dsadm start ${ODSEE_INSTANCE_HOME}
+        ${ODSEE_HOME}/bin/dsadm start ${ODSEE_INSTANCE_HOME} >/dev/null 2>&1
     fi
 else
     echo "---------------------------------------------------------------"
@@ -110,8 +110,8 @@ ${ODSEE_HOME}/bin/dsadm info ${ODSEE_INSTANCE_HOME}
 #    echo "   Instance Home (ok) : ${OUD_INSTANCE_HOME}"
 #    echo "   Oracle Home        : ${ORACLE_BASE}/product/${ORACLE_HOME_NAME}"
 #    echo "   Instance Status    : up"
-#    echo "   LDAP Port          : ${LDAP_PORT}"
-#    echo "   LDAPS Port         : ${LDAPS_PORT}"
+#    echo "   LDAP Port          : ${PORT}"
+#    echo "   LDAPS Port         : ${PORT_SSL}"
 #    echo "   Admin Port         : ${ADMIN_PORT}"
 #    echo "   Replication Port   : ${REP_PORT}"
 #    echo "---------------------------------------------------------------"

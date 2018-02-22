@@ -35,12 +35,13 @@ ENV DOWNLOAD="/tmp/download" \
     ORACLE_HOME_NAME="dsee7" \
     ORACLE_ROOT=${ORACLE_ROOT:-/u00} \
     ORACLE_DATA=${ORACLE_DATA:-/u01} \
-    LDAP_PORT=${LDAP_PORT:-1389} \
-    LDAPS_PORT=${LDAPS_PORT:-1636}
+    PORT=${PORT:-1389} \
+    PORT_SSL=${PORT_SSL:-1636}
 
 # Use second ENV so that variable get substituted
 ENV ORACLE_BASE=${ORACLE_BASE:-$ORACLE_ROOT/app/oracle} \
-    INSTANCE_BASE=${INSTANCE_BASE:-$ORACLE_DATA/instances}
+    OUD_INSTANCE_BASE=${OUD_INSTANCE_BASE:-$ORACLE_DATA/instances}
+    
 
 # same same but third ENV so that variable get substituted
 ENV PATH=${PATH}:"${ORACLE_BASE}/product/${ORACLE_HOME_NAME}/bin:${ORACLE_BASE}/product/${ORACLE_HOME_NAME}/dsrk/bin:${DOCKER_SCRIPTS}"
@@ -59,7 +60,7 @@ USER oracle
 COPY software ${ORACLE_BASE}/product/
 
 # OUD admin and ldap ports as well the OUDSM console
-EXPOSE ${LDAP_PORT} ${LDAPS_PORT}
+EXPOSE ${PORT} ${PORT_SSL}
 
 # run container health check
 HEALTHCHECK --interval=1m --start-period=5m \

@@ -61,23 +61,10 @@ rm /etc/group- /etc/gshadow- /etc/passwd- /etc/shadow-
 echo "--- Create OFA directory structure"
 # create oracle directories
 install --owner oracle --group oinstall --mode=775 --verbose --directory \
-    $ORACLE_ROOT \
-    $ORACLE_DATA \
-    $ORACLE_BASE/etc \
-    $ORACLE_BASE/network/admin \
-    $ORACLE_BASE/local \
-    $ORACLE_BASE/product
-
-echo "--- Create OFA directory structure"
-# create oracle directories
-install --owner oracle --group oinstall --mode=775 --verbose --directory \
     ${ORACLE_ROOT} \
     ${ORACLE_DATA} \
-    ${ORACLE_DATA}/scripts \
-    ${ORACLE_BASE}/etc \
-    ${ORACLE_BASE}/network/admin \
-    ${ORACLE_BASE}/local \
-    ${ORACLE_BASE}/product
+    ${ORACLE_BASE} \
+    ${ORACLE_DATA}/scripts 
     
 ln -s ${ORACLE_DATA}/scripts /docker-entrypoint-initdb.d
 
@@ -99,24 +86,25 @@ ${DOWNLOAD}/${OUDBASE_PKG} -v -b ${ORACLE_BASE} -d ${ORACLE_DATA}
 
 # update profile
 PROFILE="/home/oracle/.bash_profile"
-echo '# Check OUD_BASE and load if necessary'             >>"${PROFILE}"
-echo 'if [ "${OUD_BASE}" = "" ]; then'                    >>"${PROFILE}"
-echo '  if [ -f "${HOME}/.OUD_BASE" ]; then'              >>"${PROFILE}"
-echo '    . "${HOME}/.OUD_BASE"'                          >>"${PROFILE}"
-echo '  else'                                             >>"${PROFILE}"
-echo '    echo "ERROR: Could not load ${HOME}/.OUD_BASE"' >>"${PROFILE}"
-echo '  fi'                                               >>"${PROFILE}"
-echo 'fi'                                                 >>"${PROFILE}"
-echo ''                                                   >>"${PROFILE}"
-echo '# define an oudenv alias'                           >>"${PROFILE}"
-echo 'alias oud=". ${OUD_BASE}/local/bin/oudenv.sh"'      >>"${PROFILE}"
-echo ''                                                   >>"${PROFILE}"
-echo '# source oud environment'                           >>"${PROFILE}"
-echo '. ${OUD_BASE}/local/bin/oudenv.sh'                  >>"${PROFILE}"
+echo "--- update ${PROFILE}"
+echo "# Check OUD_BASE and load if necessary"                >>"${PROFILE}"
+echo "if [ \"\${OUD_BASE}\" = \"\" ]; then"                  >>"${PROFILE}"
+echo "  if [ -f \"\${HOME}/.OUD_BASE\" ]; then"              >>"${PROFILE}"
+echo "    . \"\${HOME}/.OUD_BASE\""                          >>"${PROFILE}"
+echo "  else"                                                >>"${PROFILE}"
+echo "    echo \"ERROR: Could not load \${HOME}/.OUD_BASE\"" >>"${PROFILE}"
+echo "  fi"                                                  >>"${PROFILE}"
+echo "fi"                                                    >>"${PROFILE}"
+echo ""                                                      >>"${PROFILE}"
+echo "# define an oudenv alias"                              >>"${PROFILE}"
+echo "alias oud=\". \${OUD_BASE}/local/bin/oudenv.sh\""      >>"${PROFILE}"
+echo ""                                                      >>"${PROFILE}"
+echo "# source oud environment"                              >>"${PROFILE}"
+echo ". \${OUD_BASE}/local/bin/oudenv.sh"                    >>"${PROFILE}"
 
 echo "--- Adjust permissions and remove temporary files ------------------------------"
 # make sure that oracle and root has a OUD_BASE
-cp /root/.OUD_BASE /home/oracle/.OUD_BASE
+mv /root/.OUD_BASE /home/oracle/.OUD_BASE
 # adjust user and group permissions
 mkdir -p ${ORACLE_BASE}/product/${ORACLE_HOME_NAME}
 chmod a+xr ${ORACLE_ROOT} ${ORACLE_DATA} ${DOCKER_SCRIPTS} /home/oracle/.OUD_BASE
@@ -127,4 +115,5 @@ echo "--- Clean up yum cache and temporary download files ----------------------
 yum clean all
 rm -rf /var/cache/yum
 rm -rf ${DOWNLOAD}/*
+rm /tmp/oudbase_install.log
 echo "=== Done runing $0 =================================="

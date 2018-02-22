@@ -19,41 +19,53 @@
 # TODO.......:
 # ---------------------------------------------------------------------------
 # - Customization -----------------------------------------------------------
-export LDAP_PORT=${LDAP_PORT:-1389}                     # Default LDAP port
-export LDAPS_PORT=${LDAPS_PORT:-1636}                   # Default LDAPS port
+export PORT=${PORT:-1389}                               # Default LDAP port
+export PORT_SSL=${PORT_SSL:-1636}                       # Default LDAPS port
 export ADMIN_PASSWORD=${ADMIN_PASSWORD:-""}             # Default directory admin password
 export BASEDN=${BASEDN:-'dc=postgasse,dc=org'}          # Default directory base DN
 export SAMPLE_DATA=${SAMPLE_DATA:-'TRUE'}               # Flag to load sample data
 
-# default folder for OUD instance init scripts
+# default folder for ODSEE instance init scripts
 export ODSEE_INSTANCE_INIT=${ODSEE_INSTANCE_INIT:-$ORACLE_DATA/scripts}
 export ODSEE_HOME=${ODSEE_HOME:-"$ORACLE_BASE/product/$ORACLE_HOME_NAME"}    
 # - End of Customization ----------------------------------------------------
 
 echo "--- Setup ODSEE environment on volume ${ORACLE_DATA} --------------------"
 
-# create instance and domain directories on volume
+# create instance directories on volume
 mkdir -v -p ${ORACLE_DATA}
-mkdir -v -p ${ORACLE_DATA}/backup
-mkdir -v -p ${ORACLE_DATA}/domains
-mkdir -v -p ${ORACLE_DATA}/etc
-mkdir -v -p ${ORACLE_DATA}/instances
-mkdir -v -p ${ORACLE_DATA}/log
-mkdir -v -p ${ORACLE_DATA}/scripts
+for i in admin backup etc instances domains log scripts; do
+    mkdir -v -p ${ORACLE_DATA}/${i}
+done
 
 # create oudtab file
 OUDTAB=${ORACLE_DATA}/etc/oudtab
-echo "# OUD Config File"                                > ${OUDTAB}
-echo "#  1 : OUD Instance Name"                         >>${OUDTAB}
-echo "#  2 : OUD LDAP Port"                             >>${OUDTAB}
-echo "#  3 : OUD LDAPS Port"                            >>${OUDTAB}
-echo "#  4 : OUD Admin Port"                            >>${OUDTAB}
-echo "#  5 : OUD Replication Port"                      >>${OUDTAB}
-echo "#---------------------------------------------"   >>${OUDTAB}
-echo "${ODSEE_INSTANCE}:${LDAP_PORT}:${LDAPS_PORT}:${ADMIN_PORT}:${REP_PORT}" >>${OUDTAB}
+echo "# OUD Config File"                                    > ${OUDTAB}
+echo "#  1 : OUD Instance Name"                             >>${OUDTAB}
+echo "#  2 : OUD LDAP Port"                                 >>${OUDTAB}
+echo "#  3 : OUD LDAPS Port"                                >>${OUDTAB}
+echo "#  4 : OUD Admin Port"                                >>${OUDTAB}
+echo "#  5 : OUD Replication Port"                          >>${OUDTAB}
+echo "#  6 : Directory type eg OUD, OID, ODSEE or OUDSM"    >>${OUDTAB}
+echo "#---------------------------------------------"       >>${OUDTAB}
+echo "${ODSEE_INSTANCE}:${PORT}:${PORT_SSL}:${PORT_ADMIN}:${PORT_REP}:ODSEE" >>${OUDTAB}
 
-# copy default config files
-cp ${ORACLE_BASE}/local/etc/*.conf ${ORACLE_DATA}/etc
+# Create default config file in ETC_BASE in case they are not yet available...
+for i in oud._DEFAULT_.conf oudenv_custom.conf oudenv.conf oudtab; do
+    if [ ! -f "${ORACLE_DATA}/etc/${i}" ]; then
+        cp ${ORACLE_BASE}/templates/etc/${i} ${ORACLE_DATA}/etc
+    fi
+done
+
+# create also some soft links from ETC_CORE to ETC_BASE
+for i in oudenv.conf oudtab; do
+    if [ ! -f "${ORACLE_DATA}/etc/${i}" ]; then
+        ln -sf ${ORACLE_DATA}/etc/${i} ${ORACLE_BASE}/etc/${i}
+    fi
+done
+
+# Load OUD environment for this instance
+. ${ORACLE_BASE}/local/bin/oudenv.sh ${ODSEE_INSTANCE} SILENT
 
 # generate a password
 if [ -z ${ADMIN_PASSWORD} ]; then
@@ -83,22 +95,32 @@ else
 fi
 
 # write password file
-echo "$s" > ${ORACLE_DATA}/etc/${ODSEE_INSTANCE}_pwd.txt
+echo "$s" > ${OUD_INSTANCE_ADMIN}/etc/${ODSEE_INSTANCE}_pwd.txt
+
+
+# set instant init location create folder if it does exists
+if [ -d "${OUD_INSTANCE_ADMIN}/create" ]; then
+    ODSEE_INSTANCE_INIT="${OUD_INSTANCE_ADMIN}/create"
+else
+    ODSEE_INSTANCE_INIT="${ODSEE_INSTANCE_INIT}/setup"
+fi
 
 echo "--- Create ODSE instance --------------------------------------------------------"
 echo "  ODSEE_INSTANCE      = ${ODSEE_INSTANCE}"
-echo "  ODSEE_INSTANCE_BASE = ${INSTANCE_BASE}"
-echo "  ODSEE_INSTANCE_HOME = ${INSTANCE_BASE}/${ODSEE_INSTANCE}"
-echo "  LDAP_PORT           = ${LDAP_PORT}"
-echo "  LDAPS_PORT          = ${LDAPS_PORT}"
-echo "  REP_PORT            = ${REP_PORT}"
-echo "  ADMIN_PORT          = ${ADMIN_PORT}"
+echo "  ODSEE_INSTANCE_BASE = ${OUD_INSTANCE_BASE}"
+echo "  OUD_INSTANCE_ADMIN  = ${OUD_INSTANCE_ADMIN}"
+echo "  OUD_INSTANCE_INIT   = ${OUD_INSTANCE_INIT}"
+echo "  ODSEE_INSTANCE_HOME = ${OUD_INSTANCE_BASE}/${ODSEE_INSTANCE}"
+echo "  PORT                = ${PORT}"
+echo "  PORT_SSL            = ${PORT_SSL}"
+echo "  PORT_REP            = ${PORT_REP}"
+echo "  PORT_ADMIN          = ${PORT_ADMIN}"
 echo "  ADMIN_USER          = ${ADMIN_USER}"
 echo "  BASEDN              = ${BASEDN}"
 echo ""
 
 # Create an directory
-${ODSEE_HOME}/bin/dsadm create -p ${LDAP_PORT} -P ${LDAPS_PORT} -w ${ORACLE_DATA}/etc/${ODSEE_INSTANCE}_pwd.txt ${ODSEE_INSTANCE_HOME}
+${ODSEE_HOME}/bin/dsadm create -p ${PORT} -P ${PORT_SSL} -w ${OUD_INSTANCE_ADMIN}/etc/${ODSEE_INSTANCE}_pwd.txt ${ODSEE_INSTANCE_HOME}
 if [ $? -eq 0 ]; then
     echo "--- Successfully created ODSEE instance (${ODSEE_INSTANCE}) ------------------------"
     # Execute custom provided setup scripts
