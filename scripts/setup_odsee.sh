@@ -65,7 +65,7 @@ install --owner oracle --group oinstall --mode=775 --verbose --directory \
     ${ORACLE_DATA} \
     ${ORACLE_BASE} \
     ${ORACLE_DATA}/scripts 
-    
+
 ln -s ${ORACLE_DATA}/scripts /docker-entrypoint-initdb.d
 
 echo "--- Setup OUD base environment -------------------------------------------------"
