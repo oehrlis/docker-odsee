@@ -1,4 +1,7 @@
+:warning: **This repository has been discontinued.** ODSEE Docker build scripts are now available in [oehrlis/docker](https://github.com/oehrlis/docker)
+
 # Docker Base Image for Trivadis Engineering
+
 Docker base image used for miscellaneous Oracle Directory Enterprise Edition engineering .
 
 ## Content
